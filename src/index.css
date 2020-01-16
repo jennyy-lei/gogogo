@@ -1,13 +1,174 @@
-body {
+@import url('https://fonts.googleapis.com/css?family=Lato:100,300,400,700');
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+body {
+  --line-color: rgba(255, 255, 255, 0.5);
+  --dot-color: white;
+
+  font: 14px "Lato", sans-serif;
+  font-weight: 300;
+  background-color: #2f2e2e;
+}
+
+h1 {
+  color: white;
+  font-weight: 300;
+  text-align: right;
+}
+
+p {
+  color: white;
+}
+
+.game {
+  display: flex;
+  justify-content: center;
+  align-items: top;
+  top: 50%;
+  position: relative;
+  transform: translateY(-50%);
+}
+
+.game > * {
+  float: left;
+}
+
+.square {
+  background-color: transparent;
+  padding: 0;
+  border: none;
+  box-sizing: border-box;
+  position: relative;
+  cursor: pointer;
+}
+
+.square:focus {
+  outline: 0;
+}
+
+.square::before {
+  content: '';
+  border-left: 1px solid var(--line-color);
+  height: 100%;
+  position: absolute;
+}
+
+.square::after {
+  content: '';
+  border-top: 1px solid var(--line-color);
+  width: 100%;
+  position: absolute;
+}
+
+.edge-0::before, .edge-9::before {
+  bottom: 0;
+}
+
+.edge-0::after, .edge-9::after {
+  left: 0;
+}
+
+.edge-1::before, .edge-2::before, .edge-5::before {
+  height: 50%;
+  bottom: 0;
+}
+
+.edge-1::after, .edge-4::after {
+  width: 50%;
+  right: 0;
+}
+
+.edge-2::after, .edge-3::after, .edge-6::after {
+  width: 50%;
+  left: 0;
+}
+
+.edge-3::before, .edge-4::before, .edge-7::before {
+  height: 50%;
+  top: 0;
+}
+
+.edge-5::after {
+  left: 0;
+}
+
+.edge-6::before {
+  top: 0;
+}
+
+.edge-7::after {
+  right: 0;
+}
+
+.edge-8::before {
+  bottom: 0;
+}
+
+.dot {
+  height: 3px;
+  width: 3px;
+  background-color: var(--dot-color);
+  position: absolute;
+  border-radius: 50%;
+  transform: translate(-30%, -40%);
+}
+
+.edge-9 > .dot {
+  height: 5px;
+  width: 5px;
+}
+
+.stone {
+  height: 35px;
+  width: 35px;
+  border-radius: 50%;
+  position: absolute;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+}
+
+.game-info {
+  text-align: center;
+  padding: 2em;
+  height: 100%;
+}
+
+.h-20 {
+  height: 20%;
+}
+
+.game-info p {
+  margin: 0;
+  font-size: 0.8em;
+  line-height: 1.5em;
+  padding: 5px;
+  height: 100%;
+}
+
+.turnlog {
+  font-size: 1em !important;
+}
+
+.startOfGame {
+  color: var(--line-color);
+}
+
+.info-line {
+  margin: 0;
+}
+
+.block {
+  height: 1em;
+  width: 2em;
+  display: inline-block;
+  margin: auto 5px;
+}
+
+.concedeBtn {
+  margin: 1em 0;
 }
