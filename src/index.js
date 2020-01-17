@@ -133,19 +133,15 @@ class Game extends React.Component {
     handleClick(i, j) {
         const squares = this.state.squares.slice();
 
-        if (squares[i][j] !== tileState.empty || this.eye(i, j, squares))
+        if (squares[i][j] !== tileState.empty)
             return;
 
         squares[i][j] = curTurn;
 
-        this.setState({squares: squares});
-        this.move(i, j);
-        
-        curTurn = curTurn === WHITE ? BLACK : WHITE;
-
         let patch = [];
         let captured = false;
-        let neighbors = this.getNeighbors(i, j);
+        let eye = true;
+        let neighbors = this.getNeighbors(i, j, squares);
 
         neighbors.forEach((n) => {
             patch = [];
@@ -153,21 +149,26 @@ class Game extends React.Component {
 
             captured = this.breadthSearch(n.x, n.y, n.x, n.y, patch);
 
-            // console.log('cap: ' + captured);
-            // console.log(patch);
-
             if (captured) {
-                this.removePatch(patch);
+                eye = false;
+                this.removePatch(patch, squares);
             }
         });
-        // alert(i + ', ' + j + ' state: ' + squares[i][j]);
+
+        if (this.eye(i, j, squares) && eye) {
+            squares[i][j] = tileState.empty;
+            return;
+        }
+
+        this.move(i, j);
+        
+        curTurn = curTurn === WHITE ? BLACK : WHITE;
+
+        this.setState({squares: squares});
     }
 
     // returns empty tileState if not an eye and color corresponding to which eye
     eye(x, y, board) {
-        if (board[x][y] !== tileState.empty)
-            return false;
-
         let color = [];
 
         if (x > 0)
@@ -184,19 +185,19 @@ class Game extends React.Component {
                 return false;
         }
 
-        return true;
+        return board[x][y] !== color[0];
     }
 
-    getNeighbors(i, j) {
+    getNeighbors(i, j, squares) {
         let neighbors = [];
         
-        if (i > 0 && this.state.squares[i][j] !== this.state.squares[i - 1][j] && this.state.squares[i - 1][j] !== tileState.empty)
+        if (i > 0 && squares[i][j] !== squares[i - 1][j] && squares[i - 1][j] !== tileState.empty)
             neighbors.push({x: i - 1, y: j});
-        if (j < boardSize - 1 && this.state.squares[i][j] !== this.state.squares[i][j + 1]  && this.state.squares[i][j + 1] !== tileState.empty)
+        if (j < boardSize - 1 && squares[i][j] !== squares[i][j + 1]  && squares[i][j + 1] !== tileState.empty)
             neighbors.push({x: i, y: j + 1});
-        if (i < boardSize - 1 && this.state.squares[i][j] !== this.state.squares[i + 1][j]  && this.state.squares[i + 1][j] !== tileState.empty)
+        if (i < boardSize - 1 && squares[i][j] !== squares[i + 1][j]  && squares[i + 1][j] !== tileState.empty)
             neighbors.push({x: i + 1, y: j});
-        if (j > 0 && this.state.squares[i][j] !== this.state.squares[i][j - 1]  && this.state.squares[i][j - 1] !== tileState.empty)
+        if (j > 0 && squares[i][j] !== squares[i][j - 1]  && squares[i][j - 1] !== tileState.empty)
             neighbors.push({x: i, y: j - 1});
 
         return neighbors
@@ -238,13 +239,9 @@ class Game extends React.Component {
         }
     }
 
-    removePatch(patch) {
-        patch.forEach((n) => {
-            const squares = this.state.squares.slice();
-    
+    removePatch(patch, squares) {
+        patch.forEach((n) => {    
             squares[n.x][n.y] = tileState.empty;
-    
-            this.setState({squares: squares});
         });
     }
 
@@ -275,7 +272,7 @@ class Game extends React.Component {
                     <Board squares={this.state.squares} move={() => this.move()} onClick={(i, j) => this.handleClick(i, j)}/>
                 </div>
                 <div className="game-info">
-                    <div classNam="h-20%">
+                    <div className="h-20%">
                         <p>Turn Count: {this.state.history.length}</p>
                         <p>Player Turn: <div className="block" style={{backgroundColor: curTurn === WHITE ? 'beige' : 'black'}}></div></p>
                         <button className="concedeBtn">Concede</button>
