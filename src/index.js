@@ -1,142 +1,39 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import Board from './board';
+import {boardSize, gridSize, WHITE, BLACK, tileState, gameState} from './globals';
 import './index.css';
-
-const boardSize = 19;
-const gridSize = 40;
-
-const WHITE = 1;
-const BLACK = 2;
-
-const tileState = {
-    'empty' : 0,
-    'white' : WHITE,
-    'black' : BLACK
-};
-
-const edgeType = {
-    'none' : 0,
-    'tl_corner' : 1,
-    'tr_corner' : 2,
-    'br_corner' : 3,
-    'bl_corner' : 4,
-    'th_edge' : 5,
-    'rv_edge' : 6,
-    'bh_edge' : 7,
-    'lv_edge' : 8,
-    'star' : 9,
-}
-
-let curTurn = WHITE;
-
-class Square extends React.Component {
-  render() {
-    let name = `square edge-${this.props.edge}`;
-    let color = this.props.value === 1 ? 'beige' : this.props.value === 2 ? 'black' : 'transparent';
-
-    return (
-        <button 
-            className={name}
-            style={{
-                height: `${gridSize}px`,
-                width: `${gridSize}px`,
-            }}
-            onClick={() => this.props.onClick()}
-        >
-            {/* TODO */}
-            <span className='dot'></span>
-
-            <span className='stone' style={{backgroundColor : color}}></span>
-        </button>
-    );
-  }
-}
-
-class Board extends React.Component {
-    renderSquare(i, j, edge) {
-        return <Square 
-            x={i}
-            y={j}
-            edge={edge}
-            value={this.props.squares[i][j]}
-            onClick={() => this.props.onClick(i, j)}
-        />;
-    }
-
-    edgeType(x, y) {
-        if (x === 0 && y === 0)
-            return edgeType.tl_corner;
-        else if (x === boardSize - 1 && y === 0)
-            return edgeType.tr_corner;
-        else if (x === boardSize - 1 && y === boardSize - 1)
-            return edgeType.br_corner;
-        else if (x === 0 && y === boardSize - 1)
-            return edgeType.bl_corner;
-        else if (x === 0)
-            return edgeType.lv_edge;
-        else if (x === boardSize - 1)
-            return edgeType.rv_edge;
-        else if (y === 0)
-            return edgeType.th_edge;
-        else if (y === boardSize - 1)
-            return edgeType.bh_edge;
-        else if ((x - 3) % 6 === 0 && (y - 3) % 6 === 0)
-            return edgeType.star;
-        else
-            return edgeType.none;
-    }
-
-    renderBoard() {
-        let boardTiles = [];
-
-        for(let i = 0; i < boardSize; i++) {
-            for(let j = 0; j < boardSize; j++) {
-                boardTiles.push(
-                    this.renderSquare(
-                        j,
-                        i,
-                        this.edgeType(j, i),
-                    )
-                );
-            }
-        }
-
-        return boardTiles;
-    }
-
-    render() {
-        // console.log(this.state.squares[0][0]);
-        // const status = 'Next player: X';
-
-        return (
-            this.renderBoard()
-        );
-    }
-}
 
 class Game extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
             history: [],
-            squares: Array(boardSize).fill(tileState.empty).map(() => new Array(boardSize).fill(tileState.empty))
+            squares: Array(boardSize).fill(tileState.empty).map(() => new Array(boardSize).fill(tileState.empty)),
+            gameData: {
+                turn: WHITE,
+                state: gameState.ready,
+            }
         };
     }
 
     move(x, y) {
         this.state.history.push({
             move: `${String.fromCharCode(97 + x).toUpperCase()}-${y}`,
-            player: curTurn,
+            player: this.state.gameData.turn
         });
     }
 
     handleClick(i, j) {
+        if (this.state.gameData.state === gameState.gameOver)
+            return;
+
         const squares = this.state.squares.slice();
 
         if (squares[i][j] !== tileState.empty)
             return;
 
-        squares[i][j] = curTurn;
+        squares[i][j] = this.state.gameData.turn;
 
         let patch = [];
         let captured = false;
@@ -162,7 +59,7 @@ class Game extends React.Component {
 
         this.move(i, j);
         
-        curTurn = curTurn === WHITE ? BLACK : WHITE;
+        this.switchPlayer();
 
         this.setState({squares: squares});
     }
@@ -245,6 +142,22 @@ class Game extends React.Component {
         });
     }
 
+    switchPlayer() {
+        this.setState({
+            gameData: {
+                turn: this.state.gameData.turn === WHITE ? BLACK : WHITE,
+            }
+        })
+    }
+
+    concede() {
+        this.setState({
+            gameData: {
+                state: gameState.gameOver,
+            },
+        });
+    }
+
     render() {
         const moves = this.state.history.map((step) => {
             return (
@@ -269,13 +182,18 @@ class Game extends React.Component {
             <div className="game">
                 <h1>GO<br/>GO<br/>GO<br/>!</h1>
                 <div className="game-board" style={style}>
-                    <Board squares={this.state.squares} move={() => this.move()} onClick={(i, j) => this.handleClick(i, j)}/>
+                    <Board
+                        squares={this.state.squares}
+                        move={() => this.move()}
+                        onClick={(i, j) => this.handleClick(i, j)}
+                        gameData={this.state.gameData}                        
+                    />
                 </div>
                 <div className="game-info">
                     <div className="h-20%">
                         <p>Turn Count: {this.state.history.length}</p>
-                        <p>Player Turn: <div className="block" style={{backgroundColor: curTurn === WHITE ? 'beige' : 'black'}}></div></p>
-                        <button className="concedeBtn">Concede</button>
+                        <p>Player Turn: <div className="block" style={{backgroundColor: this.state.gameData.turn === WHITE ? 'beige' : 'black'}}></div></p>
+                        <button className="concedeBtn" onClick={() => this.concede()}>Concede</button>
                     </div>
 
                     <hr width="100%" size="0px" color="white" style={{borderTop: 'none'}}/>

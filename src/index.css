@@ -28,7 +28,7 @@ p {
 .game {
   display: flex;
   justify-content: center;
-  align-items: top;
+  align-items: flex-start;
   top: 50%;
   position: relative;
   transform: translateY(-50%);
@@ -148,6 +148,7 @@ p {
   line-height: 1.5em;
   padding: 5px;
   height: 100%;
+  align-self: stretch;
 }
 
 .turnlog {
