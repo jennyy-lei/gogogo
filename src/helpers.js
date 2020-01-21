@@ -53,3 +53,18 @@ export function surround(board, patch) {
 
     return flag;
 }
+
+export function tileColor(color) {
+    switch (color) {
+         case tileState.empty:
+             return 'transparent';
+         case tileState.white: 
+             return 'white';
+         case tileState.black:
+             return 'black';
+        case tileState.pWhite:
+            return 'rgba(255, 255, 255, 0.5)';
+        case tileState.pBlack:
+            return 'rgba(0, 0, 0, 0.5)';
+    }
+}

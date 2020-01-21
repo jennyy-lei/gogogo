@@ -1,27 +1,27 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import {boardSize, gridSize, edgeType} from './globals';
+import {boardSize, gridSize, edgeType, tileState} from './globals';
 import './index.css';
+import { tileColor } from './helpers';
 
 class Square extends React.Component {
     render() {
-      let name = `square edge-${this.props.edge}`;
-      let color = this.props.value === 1 ? 'beige' : this.props.value === 2 ? 'black' : 'transparent';
+        let name = `square edge-${this.props.edge}`;
+        let color = tileColor(this.props.value);
   
-      return (
-          <button 
-              className={name}
-              style={{
-                  height: `${gridSize}px`,
-                  width: `${gridSize}px`,
-              }}
-              onClick={() => this.props.onClick()}
-          >
-              {/* TODO */}
-              <span className='dot'></span>
-  
-              <span className='stone' style={{backgroundColor : color}}></span>
-          </button>
+        return (
+            <button 
+                className={name}
+                style={{
+                    height: `${gridSize}px`,
+                    width: `${gridSize}px`,
+                }}
+                onClick={() => this.props.onClick()}
+            >
+                <span className='dot'></span>
+    
+                <span className='stone' style={{backgroundColor : color}}></span>
+            </button>
       );
     }
   }

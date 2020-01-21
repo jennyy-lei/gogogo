@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import Board from './board';
-import {getPatch, surround} from './scores.js';
+import {getPatch, surround, tileColor} from './helpers.js';
 import {boardSize, gridSize, WHITE, BLACK, tileState, gameState, countingMode} from './globals';
 import './index.css';
 // import { remove } from 'jest-util/build/preRunMessage';
@@ -20,7 +20,7 @@ class Game extends React.Component {
                 white: 0,
                 black: 0,
             },
-            editMode: countingMode.patchDel,
+            editMode: countingMode.none,
             swapPos: {
                 x: -1,
                 y: -1,
@@ -57,7 +57,7 @@ class Game extends React.Component {
         if (squares[i][j] !== tileState.empty)
             return;
 
-        squares[i][j] = this.state.gameData.turn;
+        squares[i][j] = this.changeTile(this.state.gameData.turn);
 
         let patch = [];
         let captured = true;
@@ -86,6 +86,13 @@ class Game extends React.Component {
         this.switchPlayer();
 
         this.setState({squares: squares});
+    }
+
+    changeTile(turn) {
+        if (turn === WHITE)
+            return tileState.white;
+        else if (turn === BLACK)
+            return tileState.black;
     }
 
     terCount(i, j, color) {
@@ -151,8 +158,28 @@ class Game extends React.Component {
                 this.setState({squares: squares});
                 break;
             }
-            case countingMode.fill:
+            case countingMode.fillW: {
+                let patch = [];
+                let squares = this.copyBoard(this.state.squares);
+
+                getPatch(i, j, this.copyBoard(squares), patch);
+
+                this.fillPatch(patch, squares, tileState.pWhite);
+
+                this.setState({squares: squares});
                 break;
+            }
+            case countingMode.fillB: {
+                let patch = [];
+                let squares = this.copyBoard(this.state.squares);
+
+                getPatch(i, j, this.copyBoard(squares), patch);
+
+                this.fillPatch(patch, squares, tileState.pBlack);
+
+                this.setState({squares: squares});
+                break;
+            }
             default: break;
         }
     }
@@ -196,6 +223,12 @@ class Game extends React.Component {
     removePatch(patch, squares) {
         patch.forEach((n) => {    
             squares[n.x][n.y] = tileState.empty;
+        });
+    }
+
+    fillPatch(patch, squares, color) {
+        patch.forEach((n) => {    
+            squares[n.x][n.y] = color;
         });
     }
 
@@ -253,11 +286,13 @@ class Game extends React.Component {
             return (
                 <div className="game-info">
                     <p>MODE: {this.state.editMode}</p>
-                    <button onClick={() => this.changeEditState(countingMode.swap)}>Swap stones</button>
-                    <button onClick={() => this.changeEditState(countingMode.addW)}>Add White</button>
-                    <button onClick={() => this.changeEditState(countingMode.addB)}>Add Black</button>
-                    <button onClick={() => this.changeEditState(countingMode.del)}>Remove Stone</button>
-                    <button onClick={() => this.changeEditState(countingMode.patchDel)}>Patch delete</button>
+                    <button className="editBtn" onClick={() => this.changeEditState(countingMode.swap)}>Swap stones</button>
+                    <button className="editBtn" onClick={() => this.changeEditState(countingMode.addW)}>Add White</button>
+                    <button className="editBtn" onClick={() => this.changeEditState(countingMode.addB)}>Add Black</button>
+                    <button className="editBtn" onClick={() => this.changeEditState(countingMode.del)}>Remove Stone</button>
+                    <button className="editBtn" onClick={() => this.changeEditState(countingMode.patchDel)}>Patch delete</button>
+                    <button className="editBtn" onClick={() => this.changeEditState(countingMode.fillW)}>Fill White Territory</button>
+                    <button className="editBtn" onClick={() => this.changeEditState(countingMode.fillB)}>Fill Black Territory</button>
                 </div>
             );
         }

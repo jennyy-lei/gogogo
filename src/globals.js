@@ -3,11 +3,15 @@ const gridSize = 40;
 
 const WHITE = 1;
 const BLACK = 2;
+const pWHITE = 3;
+const pBLACK = 4;
 
 const tileState = {
     'empty' : 0,
     'white' : WHITE,
-    'black' : BLACK
+    'black' : BLACK,
+    'pWhite' : pWHITE,
+    'pBlack' : pBLACK,
 };
 
 const edgeType = {
@@ -37,7 +41,8 @@ const countingMode = {
     'addB' : 3,
     'del' : 4,
     'patchDel' : 5,
-    'fill' : 6,
+    'fillW' : 6,
+    'fillB' : 7,
 }
 
 export {boardSize, gridSize, WHITE, BLACK, tileState, edgeType, gameState, countingMode};

@@ -152,6 +152,10 @@ p {
   align-self: stretch;
 }
 
+.game-info .editBtn {
+  display: block;
+}
+
 .turnlog {
   font-size: 1em !important;
 }
