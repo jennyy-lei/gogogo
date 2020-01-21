@@ -1,7 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import Board from './board';
-import {boardSize, gridSize, WHITE, BLACK, tileState, gameState} from './globals';
+import {getPatch, surround} from './scores.js';
+import {boardSize, gridSize, WHITE, BLACK, tileState, gameState, countingMode} from './globals';
 import './index.css';
 
 class Game extends React.Component {
@@ -12,8 +13,13 @@ class Game extends React.Component {
             squares: Array(boardSize).fill(tileState.empty).map(() => new Array(boardSize).fill(tileState.empty)),
             gameData: {
                 turn: WHITE,
-                state: gameState.ready,
-            }
+                state: gameState.playing,
+            },
+            scoreData: {
+                white: 0,
+                black: 0,
+            },
+            editMode: countingMode.none,
         };
     }
 
@@ -25,10 +31,33 @@ class Game extends React.Component {
     }
 
     handleClick(i, j) {
+        switch (this.state.gameData.state) {
+            case gameState.playing:
+                this.normalMove(i, j);
+                break;
+            case gameState.gameOver:
+                break;
+            case gameState.postGame:
+                this.terCount(i, j);
+        }
+    }
+
+    copyBoard() {
+        let board = [];
+
+        for (let i = 0; i < boardSize; i++) {
+            board.push(this.state.squares[i].slice());
+        }
+
+        return board;
+    }
+
+    normalMove(i, j) {
         if (this.state.gameData.state === gameState.gameOver)
             return;
 
-        const squares = this.state.squares.slice();
+        // TODO: clone without reference to state
+        const squares = this.copyBoard();
 
         if (squares[i][j] !== tileState.empty)
             return;
@@ -36,15 +65,15 @@ class Game extends React.Component {
         squares[i][j] = this.state.gameData.turn;
 
         let patch = [];
-        let captured = false;
+        let captured = true;
         let eye = true;
         let neighbors = this.getNeighbors(i, j, squares);
 
         neighbors.forEach((n) => {
             patch = [];
-            captured = false;
+            getPatch(n.x, n.y, squares.map(function (arr) { return arr.slice(); }), patch);
 
-            captured = this.breadthSearch(n.x, n.y, n.x, n.y, patch);
+            captured = surround(squares, patch);
 
             if (captured) {
                 eye = false;
@@ -62,6 +91,24 @@ class Game extends React.Component {
         this.switchPlayer();
 
         this.setState({squares: squares});
+    }
+
+    terCount(i, j) {
+        switch(this.state.editMode) {
+            case countingMode.none: 
+                break;
+            case countingMode.swap:
+                break;
+            case countingMode.add: 
+                break;
+            case countingMode.del:
+                break;
+            case countingMode.patchDel: {
+                // let patch = getPatch()
+            }
+            case countingMode.fill:
+                break;
+        }
     }
 
     // returns empty tileState if not an eye and color corresponding to which eye
@@ -100,42 +147,6 @@ class Game extends React.Component {
         return neighbors
     }
 
-    breadthSearch(i0, j0, i , j, patch) {
-        patch.push({x: i, y: j});
-
-        let flag = true;
-        // left
-        if (i > 0 && (i - 1 !== i0 || j !== j0)) {
-            flag = flag && this.checkTile(i, j, i - 1, j, patch);
-        }
-        // down
-        if (j < boardSize - 1 && (i !== i0 || j + 1 !== j0)) {
-            flag = flag && this.checkTile(i, j, i, j + 1, patch);
-        }
-        // right
-        if (i < boardSize - 1 && (i + 1 !== i0 || j !== j0)) {
-            flag = flag && this.checkTile(i, j, i + 1, j, patch);
-        }
-        // up
-        if (j > 0 && (i !== i0 || j - 1 !== j0)) {
-            flag = flag && this.checkTile(i, j, i, j - 1, patch);
-        }
-
-        return flag;
-    };
-
-    checkTile(i1, j1, i2, j2, patch) {
-        switch(this.state.squares[i2][j2]) {
-            case tileState.empty: 
-                return false;
-            case this.state.squares[i1][j1]: // same color
-                return this.breadthSearch(i1, j1, i2, j2, patch);
-            default: // different color
-                return true;
-
-        }
-    }
-
     removePatch(patch, squares) {
         patch.forEach((n) => {    
             squares[n.x][n.y] = tileState.empty;
@@ -146,6 +157,7 @@ class Game extends React.Component {
         this.setState({
             gameData: {
                 turn: this.state.gameData.turn === WHITE ? BLACK : WHITE,
+                state: gameState.playing,
             }
         })
     }
@@ -158,37 +170,17 @@ class Game extends React.Component {
         });
     }
 
-    render() {
-        const moves = this.state.history.map((step) => {
+    postGame() {
+        this.setState({
+            gameData: {
+                state: gameState.counting,
+            }
+        })
+    }
+
+    tab() {
+        if (this.state.gameData.state === gameState.playing) {
             return (
-                <p
-                    className="info-line"
-                    style={{
-                    // color: ste p.player === 1 ? 'beige' : 'black',
-                    }}
-                >
-                    {step.move}
-                </p>
-            );
-        });
-
-        let style = {
-            display: 'grid',
-            gridTemplateRows: `repeat( ${boardSize}, ${gridSize}px )`,
-            gridTemplateColumns: `repeat( ${boardSize}, ${gridSize}px )`,
-        }
-
-        return (
-            <div className="game">
-                <h1>GO<br/>GO<br/>GO<br/>!</h1>
-                <div className="game-board" style={style}>
-                    <Board
-                        squares={this.state.squares}
-                        move={() => this.move()}
-                        onClick={(i, j) => this.handleClick(i, j)}
-                        gameData={this.state.gameData}                        
-                    />
-                </div>
                 <div className="game-info">
                     <div className="h-20%">
                         <p>Turn Count: {this.state.history.length}</p>
@@ -200,10 +192,39 @@ class Game extends React.Component {
 
                     <p className="turnlog">Turn Log:</p>
                     <div>
-                        {moves}
+                        <p className="info-line"> {this.state.history.length} </p>
                         <p className="startOfGame">- Start of Game -</p>
                     </div>
                 </div>
+            );
+        }
+    }
+
+    render() {
+        let style = {
+            display: 'grid',
+            gridTemplateRows: `repeat( ${boardSize}, ${gridSize}px )`,
+            gridTemplateColumns: `repeat( ${boardSize}, ${gridSize}px )`,
+        }
+
+        return (
+            <div className="game">
+                <div className="overlay" style={{opacity: this.state.gameData.state === gameState.gameOver ? 1 : 0, zIndex: this.state.gameData.state === gameState.gameOver ? 1000 : -1}}>
+                    <h1>Game Over!</h1>
+                    <button onClick={() => this.postGame()}>Start Territory Counting?</button>
+                </div>
+
+                <h1>GO<br/>GO<br/>GO<br/>!</h1>
+                <div className="game-board" style={style}>
+                    <Board
+                        squares={this.state.squares}
+                        move={() => this.move()}
+                        onClick={(i, j) => this.handleClick(i, j)}
+                        gameData={this.state.gameData}                        
+                    />
+                </div>
+                
+                {this.tab()}
             </div>
         );
     }

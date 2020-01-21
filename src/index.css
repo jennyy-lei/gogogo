@@ -9,10 +9,11 @@ html, body, #root {
 body {
   --line-color: rgba(255, 255, 255, 0.5);
   --dot-color: white;
+  --bg-color: #2f2e2e;
 
   font: 14px "Lato", sans-serif;
   font-weight: 300;
-  background-color: #2f2e2e;
+  background-color: var(--bg-color);
 }
 
 h1 {
@@ -172,4 +173,31 @@ p {
 
 .concedeBtn {
   margin: 1em 0;
+}
+
+.overlay {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 80%;
+  width: 80%;
+  background-color: rgba(255, 255, 255, 0.75);
+  border-radius: 5px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+.overlay * {
+  color: var(--bg-color);
+}
+
+.overlay button {
+  padding: 5px;
+  background-color: transparent;
+  border: none;
+  border-bottom: 1px solid var(--bg-color);
+  cursor: pointer;
+  transition: 0.5s;
 }
