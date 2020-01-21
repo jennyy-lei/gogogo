@@ -33,10 +33,11 @@ const gameState = {
 const countingMode = {
     'none' : 0,
     'swap' : 1,
-    'add' : 2,
-    'del' : 3,
-    'patchDel' : 4,
-    'fill' : 5,
+    'addW' : 2,
+    'addB' : 3,
+    'del' : 4,
+    'patchDel' : 5,
+    'fill' : 6,
 }
 
 export {boardSize, gridSize, WHITE, BLACK, tileState, edgeType, gameState, countingMode};

@@ -4,6 +4,7 @@ import Board from './board';
 import {getPatch, surround} from './scores.js';
 import {boardSize, gridSize, WHITE, BLACK, tileState, gameState, countingMode} from './globals';
 import './index.css';
+// import { remove } from 'jest-util/build/preRunMessage';
 
 class Game extends React.Component {
     constructor(props) {
@@ -19,7 +20,11 @@ class Game extends React.Component {
                 white: 0,
                 black: 0,
             },
-            editMode: countingMode.none,
+            editMode: countingMode.patchDel,
+            swapPos: {
+                x: -1,
+                y: -1,
+            },
         };
     }
 
@@ -37,27 +42,17 @@ class Game extends React.Component {
                 break;
             case gameState.gameOver:
                 break;
-            case gameState.postGame:
+            case gameState.counting:
                 this.terCount(i, j);
         }
     }
 
-    copyBoard() {
-        let board = [];
-
-        for (let i = 0; i < boardSize; i++) {
-            board.push(this.state.squares[i].slice());
-        }
-
-        return board;
+    copyBoard(squares) {
+        return squares.map(function (arr) { return arr.slice(); });
     }
 
     normalMove(i, j) {
-        if (this.state.gameData.state === gameState.gameOver)
-            return;
-
-        // TODO: clone without reference to state
-        const squares = this.copyBoard();
+        let squares = this.copyBoard(this.state.squares);
 
         if (squares[i][j] !== tileState.empty)
             return;
@@ -71,7 +66,7 @@ class Game extends React.Component {
 
         neighbors.forEach((n) => {
             patch = [];
-            getPatch(n.x, n.y, squares.map(function (arr) { return arr.slice(); }), patch);
+            getPatch(n.x, n.y, this.copyBoard(squares), patch);
 
             captured = surround(squares, patch);
 
@@ -93,21 +88,72 @@ class Game extends React.Component {
         this.setState({squares: squares});
     }
 
-    terCount(i, j) {
+    terCount(i, j, color) {
         switch(this.state.editMode) {
-            case countingMode.none: 
+            case countingMode.none:
                 break;
-            case countingMode.swap:
+            case countingMode.swap: {
+                let squares = this.copyBoard(this.state.squares);
+                let pos = {...this.state.swapPos};
+                console.log(pos);
+
+                if (pos.x === -1 && pos.y === -1) {
+                    pos = {x: i, y: j};
+                } else if (pos.x === i && pos.y === j) {
+                    pos = {x:-1, y:-1};
+                } else if (squares[pos.x][pos.y] !== squares[i][j]) {
+                    let temp = squares[i][j];
+
+                    squares[i][j] = squares[pos.x][pos.y];
+                    squares[pos.x][pos.y] = temp;
+
+                    pos = {x: -1, y: -1};
+
+                    this.setState({
+                        squares: squares,
+                    });
+                }
+
+                this.setState({
+                    swapPos: pos,
+                })
                 break;
-            case countingMode.add: 
+            }
+            case countingMode.addW: {
+                let squares = this.copyBoard(this.state.squares);
+                squares[i][j] = WHITE;
+                
+                this.setState({squares: squares});
                 break;
-            case countingMode.del:
+            }
+            case countingMode.addB: {
+                let squares = this.copyBoard(this.state.squares);
+                squares[i][j] = BLACK;
+                
+                this.setState({squares: squares});
                 break;
+            }
+            case countingMode.del:{
+                let squares = this.copyBoard(this.state.squares);
+                squares[i][j] = tileState.empty;
+                
+                this.setState({squares: squares});
+                break;
+            }
             case countingMode.patchDel: {
-                // let patch = getPatch()
+                let patch = [];
+                let squares = this.copyBoard(this.state.squares);
+
+                getPatch(i, j, this.copyBoard(squares), patch);
+
+                this.removePatch(patch, squares);
+
+                this.setState({squares: squares});
+                break;
             }
             case countingMode.fill:
                 break;
+            default: break;
         }
     }
 
@@ -178,6 +224,12 @@ class Game extends React.Component {
         })
     }
 
+    changeEditState(i) {
+        this.setState({
+            editMode: i,
+        })
+    }
+
     tab() {
         if (this.state.gameData.state === gameState.playing) {
             return (
@@ -195,6 +247,17 @@ class Game extends React.Component {
                         <p className="info-line"> {this.state.history.length} </p>
                         <p className="startOfGame">- Start of Game -</p>
                     </div>
+                </div>
+            );
+        } else if (this.state.gameData.state === gameState.counting) {
+            return (
+                <div className="game-info">
+                    <p>MODE: {this.state.editMode}</p>
+                    <button onClick={() => this.changeEditState(countingMode.swap)}>Swap stones</button>
+                    <button onClick={() => this.changeEditState(countingMode.addW)}>Add White</button>
+                    <button onClick={() => this.changeEditState(countingMode.addB)}>Add Black</button>
+                    <button onClick={() => this.changeEditState(countingMode.del)}>Remove Stone</button>
+                    <button onClick={() => this.changeEditState(countingMode.patchDel)}>Patch delete</button>
                 </div>
             );
         }
