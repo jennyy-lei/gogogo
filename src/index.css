@@ -154,6 +154,30 @@ p {
 
 .game-info .editBtn {
   display: block;
+  margin: 15px 0;
+  /* background-color: rgba(255, 255, 255, 0.2); */
+  background-color: transparent;
+  color: white;
+  padding: 5px 10px;
+  border: none;
+  /* border-bottom: 1px solid white; */
+}
+
+.tab .editBtn {
+  display: inline-block;
+  margin: 0;
+}
+
+.game-info .done {
+  border: 1px solid white;
+  margin: 0 auto;
+  margin-top: 60px;
+  width: 100%;
+}
+
+.tab {
+  width: fit-content;
+  margin: 15px 0;
 }
 
 .turnlog {
@@ -185,7 +209,7 @@ p {
   transform: translateY(-50%);
   height: 80%;
   width: 80%;
-  background-color: rgba(255, 255, 255, 0.75);
+  background-color: rgba(255, 255, 255, 0.8);
   border-radius: 5px;
   display: flex;
   justify-content: center;
