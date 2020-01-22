@@ -370,10 +370,10 @@ class Game extends React.Component {
 
                     <hr width="100%" size="0px" color="white" style={{borderTop: 'none'}}/>
 
-                    <p className="turnlog">Turn Log:</p>
-                    <div>
-                        <p className="info-line"> {this.state.history.length} </p>
-                    </div>
+                    {/* <p className="turnlog">Turn Log:</p> */}
+                    {/* <div> */}
+                        {/* <p className="info-line"> {this.state.history.length} </p> */}
+                    {/* </div> */}
                 </div>
             );
         } else if (this.state.gameData.state === gameState.counting) {
