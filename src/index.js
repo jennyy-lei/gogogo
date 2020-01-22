@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import Board from './board';
-import {getPatch, surround, tileColor} from './helpers.js';
+import {getPatch, surround, tileColor, closedTer} from './helpers.js';
 import {boardSize, gridSize, WHITE, BLACK, tileState, gameState, countingMode} from './globals';
 import './index.css';
 // import { remove } from 'jest-util/build/preRunMessage';
@@ -128,14 +128,14 @@ class Game extends React.Component {
             }
             case countingMode.addW: {
                 let squares = this.copyBoard(this.state.squares);
-                squares[i][j] = WHITE;
+                squares[i][j] = tileState.pWhite;
                 
                 this.setState({squares: squares});
                 break;
             }
             case countingMode.addB: {
                 let squares = this.copyBoard(this.state.squares);
-                squares[i][j] = BLACK;
+                squares[i][j] = tileState.pBlack;
                 
                 this.setState({squares: squares});
                 break;
@@ -263,6 +263,60 @@ class Game extends React.Component {
         })
     }
 
+    changeGameState(i) {
+        this.setState({
+            gameData: {
+                state: i,
+            },
+        })
+    }
+
+    autoComplete() {
+        let squares = this.copyBoard(this.state.squares);
+        let patch = [];
+        let edge = false;
+
+        for (let i = 0; i < boardSize; i++) {
+            for (let j = 0; j < boardSize; j++) {
+                if (squares[i][j] === tileState.empty) {
+                    edge = false;
+                    patch = [];
+
+                    getPatch(i, j, this.copyBoard(squares), patch);
+                    
+                    edge = closedTer(squares, patch);
+
+                    if (edge !== -1)
+                        this.fillPatch(patch, squares, edge);
+                }
+            }
+        }
+
+        this.setState({squares:squares});
+    }
+
+    countScore() {
+        this.changeGameState(gameState.complete);
+
+        let w = this.state.scoreData.white,
+            b = this.state.scoreData.black;
+        
+        let squares = this.copyBoard(this.state.squares);
+
+        for (let i = 0; i < boardSize; i++) {
+            for (let j = 0; j < boardSize; j++) {
+                if (squares[i][j] !== this.state.empty) {
+                    if (squares[i][j] === tileState.black || squares[i][j] === tileState.pBlack)
+                        b++;
+                    else if (squares[i][j] === tileState.white || squares[i][j] === tileState.pWhite)
+                        w++;
+                    
+                    
+                }
+            }
+        }
+    }
+
     tab() {
         if (this.state.gameData.state === gameState.playing) {
             return (
@@ -293,6 +347,8 @@ class Game extends React.Component {
                     <button className="editBtn" onClick={() => this.changeEditState(countingMode.patchDel)}>Patch delete</button>
                     <button className="editBtn" onClick={() => this.changeEditState(countingMode.fillW)}>Fill White Territory</button>
                     <button className="editBtn" onClick={() => this.changeEditState(countingMode.fillB)}>Fill Black Territory</button>
+                    <button className="editBtn" onClick={() => this.autoComplete()}>Auto-complete</button>
+                    <button className="editBtn done" onClick={() => this.countScore()}>DONE</button>
                 </div>
             );
         }

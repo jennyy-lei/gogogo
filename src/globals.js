@@ -12,6 +12,7 @@ const tileState = {
     'black' : BLACK,
     'pWhite' : pWHITE,
     'pBlack' : pBLACK,
+    'error' : 5,
 };
 
 const edgeType = {
@@ -32,6 +33,7 @@ const gameState = {
     'playing' : 1,
     'gameOver' : 2,
     'counting' : 3,
+    'complete': 4,
 }
 
 const countingMode = {

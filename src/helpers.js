@@ -54,6 +54,50 @@ export function surround(board, patch) {
     return flag;
 }
 
+export function closedTer(board, patch) {
+    console.log(checkBoarder(board, patch, tileState.white, tileState.pWhite));
+    if (checkBoarder(board, patch, tileState.white, tileState.pWhite)) {
+        console.log('white');
+        return tileState.pWhite;
+    } else if (checkBoarder(board, patch, tileState.black, tileState.pBlack)) {
+        console.log('black');
+        return tileState.pBlack;
+    } else {
+        return -1;
+    }
+}
+
+function checkBoarder(board, patch, color1, color2) {
+    let i, j;
+    let edge1 = color1;
+    let edge2 = color2;
+    let flag = true;
+
+    patch.map(function (coor) {
+        i = coor.x;
+        j = coor.y;
+        
+        if (i > 0 && !(board[i - 1][j] === edge1 || board[i - 1][j] === edge2 || board[i - 1][j] === tileState.empty)) {
+            flag = false;
+            return;
+        }
+        if (i < boardSize - 1 && !(board[i + 1][j] === edge1 || board[i + 1][j] === edge2 || board[i + 1][j] === tileState.empty)) {
+            flag = false;
+            return;
+        }
+        if (j > 0 && !(board[i][j - 1] === edge1 || board[i][j - 1] === edge2 || board[i][j - 1] === tileState.empty)) {
+            flag = false;
+            return;
+        }
+        if (j < boardSize - 1 && !(board[i][j + 1] === edge1 || board[i][j + 1] === edge2 || board[i][j + 1] === tileState.empty)) {
+            flag = false;
+            return;
+        }
+    });
+
+    return flag;
+}
+
 export function tileColor(color) {
     switch (color) {
          case tileState.empty:
@@ -66,5 +110,7 @@ export function tileColor(color) {
             return 'rgba(255, 255, 255, 0.5)';
         case tileState.pBlack:
             return 'rgba(0, 0, 0, 0.5)';
+        case tileState.error:
+            return 'rgba(255, 99, 71, 0.5)';
     }
 }
