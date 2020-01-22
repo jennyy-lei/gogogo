@@ -19,6 +19,7 @@ class Game extends React.Component {
             scoreData: {
                 white: 0,
                 black: 0,
+                error: 0,
             },
             editMode: countingMode.none,
             swapPos: {
@@ -299,7 +300,8 @@ class Game extends React.Component {
         this.changeGameState(gameState.complete);
 
         let w = this.state.scoreData.white,
-            b = this.state.scoreData.black;
+            b = this.state.scoreData.black,
+            e = this.state.scoreData.error;
         
         let squares = this.copyBoard(this.state.squares);
 
@@ -310,11 +312,50 @@ class Game extends React.Component {
                         b++;
                     else if (squares[i][j] === tileState.white || squares[i][j] === tileState.pWhite)
                         w++;
-                    
-                    
+                    else {
+                        squares[i][j] = tileState.error;
+                        e++;
+                    }
                 }
             }
         }
+
+        this.setState({
+            squares: squares,
+            scoreData: {
+                white: w,
+                black: b,
+                error: e,
+            }
+        })
+    }
+
+    reset() {
+        let history = [];
+        let squares = Array(boardSize).fill(tileState.empty).map(() => new Array(boardSize).fill(tileState.empty));
+        let gameData = {
+            turn: WHITE,
+            state: gameState.playing,
+        };
+        let scoreData = {
+            white: 0,
+            black: 0,
+            error: 0,
+        };
+        let editMode = countingMode.none;
+        let swapPos = {
+            x: -1, 
+            y: -1,
+        }
+
+        this.setState({
+            history: history,
+            squares: squares,
+            gameData: gameData,
+            scoreData: scoreData,
+            editMode: editMode,
+            swapPos: swapPos,
+        });
     }
 
     tab() {
@@ -332,7 +373,6 @@ class Game extends React.Component {
                     <p className="turnlog">Turn Log:</p>
                     <div>
                         <p className="info-line"> {this.state.history.length} </p>
-                        <p className="startOfGame">- Start of Game -</p>
                     </div>
                 </div>
             );
@@ -340,15 +380,48 @@ class Game extends React.Component {
             return (
                 <div className="game-info">
                     <p>MODE: {this.state.editMode}</p>
-                    <button className="editBtn" onClick={() => this.changeEditState(countingMode.swap)}>Swap stones</button>
-                    <button className="editBtn" onClick={() => this.changeEditState(countingMode.addW)}>Add White</button>
-                    <button className="editBtn" onClick={() => this.changeEditState(countingMode.addB)}>Add Black</button>
-                    <button className="editBtn" onClick={() => this.changeEditState(countingMode.del)}>Remove Stone</button>
-                    <button className="editBtn" onClick={() => this.changeEditState(countingMode.patchDel)}>Patch delete</button>
-                    <button className="editBtn" onClick={() => this.changeEditState(countingMode.fillW)}>Fill White Territory</button>
-                    <button className="editBtn" onClick={() => this.changeEditState(countingMode.fillB)}>Fill Black Territory</button>
-                    <button className="editBtn" onClick={() => this.autoComplete()}>Auto-complete</button>
+                    <button className="editBtn" onClick={() => this.changeEditState(countingMode.swap)}>0: Swap stones</button>
+                    <button className="editBtn" onClick={() => this.changeEditState(countingMode.addW)}>1: Add White</button>
+                    <button className="editBtn" onClick={() => this.changeEditState(countingMode.addB)}>2: Add Black</button>
+                    <button className="editBtn" onClick={() => this.changeEditState(countingMode.del)}>3: Remove Stone</button>
+                    <button className="editBtn" onClick={() => this.changeEditState(countingMode.patchDel)}>4: Patch delete</button>
+                    <button className="editBtn" onClick={() => this.changeEditState(countingMode.fillW)}>5: Fill White Territory</button>
+                    <button className="editBtn" onClick={() => this.changeEditState(countingMode.fillB)}>6: Fill Black Territory</button>
+                    <button className="editBtn" onClick={() => this.autoComplete()}>7: Auto-complete</button>
                     <button className="editBtn done" onClick={() => this.countScore()}>DONE</button>
+                </div>
+            );
+        }
+    }
+
+    overlay() {
+        let open = false;
+
+        if (this.state.gameData.state === gameState.gameOver || this.state.gameData.state === gameState.complete)
+            open = true;
+
+        if (this.state.gameData.state === gameState.gameOver) {
+            return (
+                <div className="overlay" style={{opacity: open ? 1 : 0, zIndex: open ? 1000 : -1}}>
+                    <h1>Game Over!</h1>
+                    <button onClick={() => this.postGame()}>Start Territory Counting?</button>
+                </div>
+            );
+        } else if (this.state.gameData.state === gameState.complete) {
+            let w = this.state.scoreData.white,
+                b = this.state.scoreData.black,
+                e = this.state.scoreData.error;
+
+            let text = w !== b ? (w > b ? 'White Wins!' : 'Black Wins!') : 'Tie!';
+
+            return (
+                <div className="overlay" style={{opacity: open ? 1 : 0, zIndex: open ? 1000 : -1}}>
+                    <h1>Complete!</h1>
+                    <p>{text}</p>
+                    <p>White: {w} | Black: {b}</p>
+                    <p>Missing information on : {e} {e === 1 ? 'stone' : 'stones'}</p>
+                    <button onClick={() => this.reset()}>New Game?</button>
+                    <button onClick={() => this.changeGameState(gameState.counting)}>Back to Board</button>
                 </div>
             );
         }
@@ -363,10 +436,7 @@ class Game extends React.Component {
 
         return (
             <div className="game">
-                <div className="overlay" style={{opacity: this.state.gameData.state === gameState.gameOver ? 1 : 0, zIndex: this.state.gameData.state === gameState.gameOver ? 1000 : -1}}>
-                    <h1>Game Over!</h1>
-                    <button onClick={() => this.postGame()}>Start Territory Counting?</button>
-                </div>
+                {this.overlay()}
 
                 <h1>GO<br/>GO<br/>GO<br/>!</h1>
                 <div className="game-board" style={style}>

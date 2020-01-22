@@ -111,6 +111,6 @@ export function tileColor(color) {
         case tileState.pBlack:
             return 'rgba(0, 0, 0, 0.5)';
         case tileState.error:
-            return 'rgba(255, 99, 71, 0.5)';
+            return 'rgba(255, 99, 71, 0.25)';
     }
 }
